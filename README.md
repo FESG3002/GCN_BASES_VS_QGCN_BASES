@@ -1,4 +1,4 @@
-# Organized Quantum-Temporal GCN for Recommender Systems
+# Quantum-Temporal GCN for Recommender Systems
 
 Ce dossier contient une version modulaire, structurée et nettoyée du code initialement présent dans le notebook `GCN_BASICS.ipynb`.
 
