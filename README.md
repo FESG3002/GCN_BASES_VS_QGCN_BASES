@@ -1,58 +1,58 @@
 # Quantum-Temporal GCN for Recommender Systems
 
-Ce dossier contient une version modulaire, structurée et nettoyée du code initialement présent dans le notebook `GCN_BASICS.ipynb`.
 
-## But du Code
 
-Le but principal de ce dépôt est l'implémentation et la comparaison de systèmes de recommandation basés sur l'apprentissage profond sur graphes (Graph Convolutional Networks - GCN) classiques et leurs extensions quantiques (Quantum Machine Learning). 
+## Purpose of the Code
 
-Le projet met en place deux concepts clés :
-1. **L'apprentissage statique et temporel (Time-Decay)** : Utilisation d'une matrice d'adjacence avec extinction temporelle (*decay temporelle*) pour modéliser le fait que les interactions utilisateur-item récentes sont plus importantes que les interactions anciennes.
-2. **L'hybridation Quantique-Classique** : Conception d'un modèle qui utilise la puissance des GCN classiques pour capter la topologie spatiale des interactions et utiliser un scoreur quantique (utilisant les portes d'intrication et de superposition) pour corriger et modéliser des interactions non-linéaires extraordinairement complexes.
+The main purpose of this repository is the implementation and comparison of recommendation systems based on classical deep graph learning (Graph Convolutional Networks - GCN) and their quantum extensions (Quantum Machine Learning).
 
----
-
-## Les Modèles et leurs Références
-
-### 1. Modèles Classiques (GCN)
-Les algorithmes d'apprentissage sur graphes exploitent la propagation de l'information entre les utilisateurs et les films (Items).
-
-- **`GCNRecommender` (via PyTorch Geometric)** : L'implémentation standard.
-  - *Sujet* : Utilise l'opérateur classique GCNConv.
-  - *Référence papier* : [Semi-Supervised Classification with Graph Convolutional Networks (Kipf & Welling, ICLR 2017)](https://arxiv.org/abs/1609.02907).
-- **`GCNRecommenderFromScratch`** : L'implémentation classique sans module de haut niveau.
-  - *Sujet* : Écrit de zéro (`CustomGCNLayer`) via l'opération de multiplication matricielle éparse classique (`torch.sparse.mm`). Utilisé comme base (backbone) afin d'être complètement transparent lors de sa fusion avec les réseaux de neurones quantiques (QNN).
-
-*Note sur la fonction de perte (Loss) :*
-Les modèles bénéficient de l'optimisation BPR de recommandation.
-- *Référence papier* : [BPR: Bayesian Personalized Ranking from Implicit Feedback (Rendle et al., UAI 2009)](https://arxiv.org/abs/1205.2618).
-
-### 2. Modèles Quantiques et Hybrides (QML)
-Les réseaux neuronaux quantiques (QNN) ou réseaux variationnels quantiques (VQC) introduisent une expressivité différente.
-
-- **`QuantumEnhancedScorer` / `QuantumGCNLayer`** : Module quantique utilisant Qiskit.
-  - *Sujet* : Utilise des circuits quantiques paramétrés (PQC) implémentant des rotations (`RY`, `RZ`) pour l'encodage et des portes de contrôle (`CX`) pour l'intrication des features latentes. Intégré via `TorchConnector`.
-  - *Référence générale QML* : [Classification with Quantum Neural Networks on Near Term Processors (Farhi & Neven, 2018)](https://arxiv.org/abs/1802.06002).
-- **`QuantumHybridRecommender`** : La contribution principale.
-  - *Sujet* : Le modèle combine un GCN classique pour apprendre l'architecture graphique macroscopique et projette la représentation générée vers un espace quantique à qubits réduits. Ce système prédit l'affinité sous la forme de : 
-  `Score = Produit_Scalaire(User, Item) + Β * Correction_Quantique(User, Item)`.
-  - *Référence QGCN* : S'inspire des travaux de [Quantum Graph Neural Networks (Verdon et al., 2019)](https://arxiv.org/abs/1909.12264).
+The project establishes two key concepts:
+1. **Static and Temporal Learning (Time-Decay)**: Use of an adjacency matrix with temporal decay to model the fact that recent user-item interactions are more important than older ones.
+2. **Quantum-Classical Hybridization**: Design of a model that leverages classical GCNs to capture the spatial topology of interactions and uses a quantum scorer (exploiting entanglement and superposition gates) to correct and model extraordinarily complex non-linear interactions.
 
 ---
 
-## Structure du Système
+## Models and Their References
 
-- `src/data_loader.py` : Importe les données (MovieLens), encode les *ID*, effectue la séparation stricte chronologiquement (Train/Val/Test) et génère les graphes pondérés (Statiques et Temporels avec *decay* pondéré).
-- `src/models.py` : Catalogue abstrait répertoriant nos classes PyTorch pour la définition précise des algorithmes cités ci-dessus (PyG, From Scratch et Quantum Qiskit).
-- `src/evaluation.py` : Logique d'évaluation hors ligne de Recommender Systems (calculs de l'erreur MSE/RMSE, métrique d'ordre AUC, métriques top-K comme Recall@K et NDCG@K).
-- `src/train.py` : Contient l'algorithme d'entraînement BPR pour les architectures classiques, ainsi que `train_quantum_hybrid` optimisé avec un clip de gradient, `DataLoader` par *batch*, et une gestion très prudente de la perte MSE/BPR pour les modèles quantiques.
-- `main.py` : Fichier principal *plug-and-play*. Il connecte le flux de bout en bout de l'organisation des données à l'évaluation comparative des modèles.
+### 1. Classical Models (GCN)
+Graph learning algorithms exploit information propagation between users and movies (Items).
 
-## Instructions d'Exécution
+- **`GCNRecommender` (via PyTorch Geometric)**: The standard implementation.
+  - *Subject*: Uses the classical GCNConv operator.
+  - *Paper reference*: [Semi-Supervised Classification with Graph Convolutional Networks (Kipf & Welling, ICLR 2017)](https://arxiv.org/abs/1609.02907).
+- **`GCNRecommenderFromScratch`**: The classical implementation without high-level modules.
+  - *Subject*: Written from scratch (`CustomGCNLayer`) via the classical sparse matrix multiplication operation (`torch.sparse.mm`). Used as a backbone to remain fully transparent when fused with quantum neural networks (QNN).
 
-Assurez-vous que l'environnement virtuel contient l'ensemble des bibliothèques (`torch`, `torch_geometric`, `qiskit`, `qiskit-machine-learning`, `numpy`, `pandas`, `scipy`, `scikit-learn`).
+*Note on the Loss Function:*
+The models benefit from BPR recommendation optimization.
+- *Paper reference*: [BPR: Bayesian Personalized Ranking from Implicit Feedback (Rendle et al., UAI 2009)](https://arxiv.org/abs/1205.2618).
+
+### 2. Quantum and Hybrid Models (QML)
+Quantum neural networks (QNN) or variational quantum circuits (VQC) introduce a different expressivity.
+
+- **`QuantumEnhancedScorer` / `QuantumGCNLayer`**: Quantum module using Qiskit.
+  - *Subject*: Uses parameterized quantum circuits (PQC) implementing rotations (`RY`, `RZ`) for encoding and control gates (`CX`) for entangling latent features. Integrated via `TorchConnector`.
+  - *General QML reference*: [Classification with Quantum Neural Networks on Near Term Processors (Farhi & Neven, 2018)](https://arxiv.org/abs/1802.06002).
+- **`QuantumHybridRecommender`**: The main contribution.
+  - *Subject*: The model combines a classical GCN to learn the macroscopic graph architecture and projects the generated representation into a reduced-qubit quantum space. This system predicts affinity in the form of:
+  `Score = Dot_Product(User, Item) + β * Quantum_Correction(User, Item)`.
+  - *QGCN reference*: Inspired by the work of [Quantum Graph Neural Networks (Verdon et al., 2019)](https://arxiv.org/abs/1909.12264).
+
+---
+
+## System Structure
+
+- `src/data_loader.py`: Imports data (MovieLens), encodes *IDs*, performs strict chronological splitting (Train/Val/Test), and generates weighted graphs (Static and Temporal with weighted *decay*).
+- `src/models.py`: Abstract catalog listing our PyTorch classes for the precise definition of the algorithms described above (PyG, From Scratch, and Quantum Qiskit).
+- `src/evaluation.py`: Offline evaluation logic for Recommender Systems (MSE/RMSE error calculations, AUC ranking metric, top-K metrics such as Recall@K and NDCG@K).
+- `src/train.py`: Contains the BPR training algorithm for classical architectures, as well as `train_quantum_hybrid` optimized with gradient clipping, batch `DataLoader`, and very careful MSE/BPR loss handling for quantum models.
+- `main.py`: Main *plug-and-play* file. It connects the end-to-end pipeline from data organization to comparative model evaluation.
+
+## Execution Instructions
+
+Ensure that the virtual environment includes all required libraries (`torch`, `torch_geometric`, `qiskit`, `qiskit-machine-learning`, `numpy`, `pandas`, `scipy`, `scikit-learn`).
 
 ```bash
-# Lancement de l'expérience standard complète (GCN de zero + QGCN Hybride)
+# Launch the full standard experiment (GCN from scratch + Hybrid QGCN)
 python main.py
 ```
